@@ -98,12 +98,19 @@ def performCustomAction():
 	
 
 def testVersion():
+	node = nuke.thisNode()
+	fileValue = node["file"].getValue()
+	renderPath = os.path.dirname(fileValue)
 	p = testVersionPanel()
 	if p.show():
-		#script version up
-		nukescripts.script_version_up()
-		#writeNode version up and create folder
-		for node in nuke.allNodes("Write"):
-			name = node.name()
-			if p.value(name) == 1:
-				node.knob("version up").execute()
+		if renderPath != "":	
+			if not os.path.isdir(renderPath):
+				# get topnode's value 
+				# nuke.thisNode().input(0).name() 
+				renderPath = os.path.join(renderPath ,"test_v1")
+				os.makedirs(renderPath)
+				nuke.message("successfully created test directory at: \n\n%s" % renderPath)
+			else:
+				nuke.message("please choose a new directory for test folders")	
+		else:
+			nuke.message("Please make sure to set a render path")	
