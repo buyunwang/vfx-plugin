@@ -34,7 +34,7 @@ def addCustomKnobs():
 
 # Select which write nodes to add to test folder		
 def testVersionPanel():	
-	p = nuke.Panel('test - Select write nodes to create test location')
+	p = nuke.Panel('test - select write nodes to create test location')
 	p.setWidth(500)
 	for node in nuke.allNodes("Write"):
 		p.addBooleanCheckBox("%s" % node.name() , 1)
@@ -46,7 +46,20 @@ def performCustomAction():
 	knob = nuke.thisKnob()
 
 	fileValue = node["file"].getValue()
-	renderPath = os.path.dirname(fileValue)
+	renderPath = os.path.abspath(fileValue)
+	
+	#create test folder		
+	if knob.name() == "create test folder":
+		if renderPath != "":	
+			renderPath = os.path.join(renderPath ,'', "test_v1")
+			#renderPath = os.path.join(renderPath, "test_v1")
+			if os.path.isdir(renderPath):
+				nuke.message("test folder already created, please version up")
+			else:					
+				os.makedirs(renderPath)
+				nuke.message("successfully created test directory at: \n\n%s" % renderPath)	
+		else:
+			nuke.message("please make sure to set a render path")
 
 	#open in finder
 	if knob.name() == "open in explorer":
@@ -61,21 +74,7 @@ def performCustomAction():
 			except:
 				nuke.message("couldn't open render path. No such directory")
 		else:
-			nuke.message("Please make sure to set a render path")
-
-	#create test folder		
-	if knob.name() == "create test folder":
-		if renderPath != "":	
-			if not os.path.isdir(renderPath):
-				# get topnode's value 
-				# nuke.thisNode().input(0).name() 
-				renderPath = os.path.join(renderPath ,"test_v1")
-				os.makedirs(renderPath)
-				nuke.message("successfully created test directory at: \n\n%s" % renderPath)
-			else:
-				nuke.message("please choose a new directory for test folders")	
-		else:
-			nuke.message("Please make sure to set a render path")		
+			nuke.message("please make sure to set a render path")		
 	
 	#create next version
 	if knob.name() == "version up":	
@@ -90,27 +89,17 @@ def performCustomAction():
 
 			if not os.path.isdir(renderPath):
 				os.makedirs(renderPath)
-				nuke.message("Successfully versioned up")
+				nuke.message("successfully versioned up")
 			else:
-				nuke.message("Please choose a test folder with version number or create a test folder")
+				nuke.message("please set file path with test_vxx at the end or create a test folder first")
 		else:
-			nuke.message("Please make sure to set a render path")
+			nuke.message("please make sure to set a render path")
 	
 
 def testVersion():
-	node = nuke.thisNode()
-	fileValue = node["file"].getValue()
-	renderPath = os.path.dirname(fileValue)
 	p = testVersionPanel()
 	if p.show():
-		if renderPath != "":	
-			if not os.path.isdir(renderPath):
-				# get topnode's value 
-				# nuke.thisNode().input(0).name() 
-				renderPath = os.path.join(renderPath ,"test_v1")
-				os.makedirs(renderPath)
-				nuke.message("successfully created test directory at: \n\n%s" % renderPath)
-			else:
-				nuke.message("please choose a new directory for test folders")	
-		else:
-			nuke.message("Please make sure to set a render path")	
+		for node in nuke.allNodes("Write"):
+			name = node.name()
+			if p.value(name) == 1:
+				node.knob("create test folder").execute()
