@@ -57,6 +57,7 @@ def performCustomAction():
 				nuke.message("test folder already created, please version up")
 			else:					
 				os.makedirs(renderPath)
+				node.knob('file').setValue(renderPath)
 				nuke.message("successfully created test directory at: \n\n%s" % renderPath)	
 		else:
 			nuke.message("please make sure to set a render path")
